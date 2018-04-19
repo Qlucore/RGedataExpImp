@@ -1,18 +1,22 @@
 #' Read a .gedata file (Qlucore Omics Explorer data format) and extract the information
 #' 
-#' Given a .gedata file, read it and extract the data, sample annotations and variable annotations. If \code{out.RData} is not NULL, save the objects in an R data file. Otherwise, return (invisibly) the data matrix and two data frames containing the annotations.
+#' Given a .gedata file, read it and extract the data, sample annotations and
+#' variable annotations. If \code{out.rds} is not NULL, save the objects in an
+#' .rds file. Return (invisibly) the data matrix and two data frames
+#' containing the annotations.
 #' 
 #' @param in.gedata The path to a .gedata file
-#' @param out.RData The name of the RData file where the data matrix and the annotation data frames should be saved
+#' @param out.rds The name of the .rds file where the data matrix and the
+#'   annotation data frames should be saved
 #' @export
 #' @author Charlotte Soneson, Martin Hjelmstedt
 #' @return Returns invisibly a list containing three elements:
 #' \itemize{
-#' \item \code{X.data} - the data matrix (variables as rows, samples as columns)
-#' \item \code{X.samp.annot} - a data frame with sample annotations
-#' \item \code{X.var.annot} - a data frame with variable annotations
+#' \item \code{data} - the data matrix (variables as rows, samples as columns)
+#' \item \code{samp.annot} - a data frame with sample annotations
+#' \item \code{var.annot} - a data frame with variable annotations
 #' }
-read.gedata <- function(in.gedata, out.RData = NULL) {
+read.gedata <- function(in.gedata, out.rds = NULL) {
   ## Find the number of samples and variables,
   ## and the number of annotations for each of them.
   n.col <- max(count.fields(in.gedata, sep = "\t", quote = ""))
@@ -26,7 +30,7 @@ read.gedata <- function(in.gedata, out.RData = NULL) {
   while (X[i, 2] != "samples") {
     i <- i + 1
     if (i > nrow(X)) {
-      stop("Error: meta data not in gedata v 1.1 format")
+      stop("Error: meta data not in gedata v 1.0 or 1.1 format")
     }
   }
   saminfo.rownumber <- i
@@ -44,8 +48,8 @@ read.gedata <- function(in.gedata, out.RData = NULL) {
   rownames(X.data) <- X[-(1:(nbr.sample.annotations + n.metarows + 1)), 1]
 
   X.data <- as.matrix(X.data)
-
-  ## mode(X.data) <- 'numeric'
+  mode(X.data) <- 'numeric'
+  
   colnames(X.data) <- X[n.metarows + 1, -(1:(nbr.variable.annotations + 1))]
   
   ## Extract variable annotations
@@ -64,9 +68,11 @@ read.gedata <- function(in.gedata, out.RData = NULL) {
   colnames(X.samp.annot) <- X[(n.metarows + 1), -(1:(nbr.variable.annotations + 1))]
   X.samp.annot <- as.data.frame(t(X.samp.annot))
   
-  ## Save
-  if (!is.null(out.RData))
-    save(X.data, X.var.annot, X.samp.annot, file = out.RData)
+  out.list <- list(data = X.data, var.annot = X.var.annot, samp.annot = X.samp.annot)
   
-  return(invisible(list(X.data, X.var.annot, X.samp.annot)))
+  ## Save
+  if (!is.null(out.rds))
+    saveRDS(out.list, file = out.rds)
+  
+  return(invisible(out.list))
 }
