@@ -2,7 +2,7 @@
 #' 
 #' Given a .gedata file, read it and extract the data, sample annotations and
 #' variable annotations. If \code{out.rds} is not NULL, save the objects in an
-#' .rds file. Otherwise, return (invisibly) the data matrix and two data frames
+#' .rds file. Return (invisibly) the data matrix and two data frames
 #' containing the annotations.
 #' 
 #' @param in.gedata The path to a .gedata file
@@ -30,7 +30,7 @@ read.gedata <- function(in.gedata, out.rds = NULL) {
   while (X[i, 2] != "samples") {
     i <- i + 1
     if (i > nrow(X)) {
-      stop("Error: meta data not in gedata v 1.1 format")
+      stop("Error: meta data not in gedata v 1.0 or 1.1 format")
     }
   }
   saminfo.rownumber <- i
